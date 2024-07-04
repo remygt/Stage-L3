@@ -1,0 +1,12 @@
+train: ../../datasets_collemboles_yolov5x6/cross/qftza/0.qftza/train/images
+val: ../../datasets_collemboles_yolov5x6/cross/qftza/0.qftza/valid/images
+
+nc: 8
+names: ['AUTRE', 'CER', 'CRY_THE', 'HYP_MAN', 'ISO_MIN', 'LEP', 'MET_AFF', 'PAR_NOT']
+
+roboflow:
+  workspace: theo
+  project: r7p3
+  version: 4
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/theo/r7p3/dataset/4

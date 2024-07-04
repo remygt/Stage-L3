@@ -1,0 +1,113 @@
+{% extends "nav.html" %}
+
+{% block content %}
+<div class="window">
+    <div class="container bg-light rounded mt-3 text-dark p-0" id="zones">
+        <h1 class="display-4 text-center">Accueil</h1>
+        
+        <!-- Paragraphe -->
+        <p class="lead text-center mt-4">Bienvenue sur notre plateforme d'identification de collemboles.<br> Téléchargez votre image contenant les collemboles ou sélectionnez les régions d'intérêt pour l'analyse.</p>
+        
+        <!-- Bandeau avec image et remarque -->
+        <div class="position-relative mb-4 mt-3 mx-2" style="height: 250px; overflow: hidden;">
+            <div class="bg-image parallax rounded" style="background-image: url('{{ url_for('static', filename='img/collembole.jpg') }}'); height: 250px; background-size: cover; background-position: center 60%;">
+                <div class="position-absolute top-50 start-50 translate-middle p-3 bg-dark bg-opacity-50 text-white text-center rounded" style="width: 100%;">
+                    <h5 class="card-title">Remarque Importante</h5>
+                    <p class="card-text">Pour une meilleure précision, assurez-vous que votre image est de haute qualité et que les collemboles sont clairement visibles.</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Ajoutez ici le contenu de la page d'accueil -->
+        <div class="row justify-content-center mt-5">
+            <!-- Carrousel de gauche -->
+            <div class="col-md-3 mt-5 d-flex flex-column align-items-center">
+                <div id="carouselLeft" class="carousel slide rounded mb-3 mx-2" data-bs-ride="carousel">
+                    <div class="carousel-inner">
+                        <div class="carousel-item active">
+                            <img src="{{ image_1 }}" class="d-block w-100 rounded" alt="Example 1">
+                            <div class="carousel-caption d-none d-md-block">
+                                <h5>Ex images correctes</h5>
+                            </div>
+                        </div>
+                        <div class="carousel-item">
+                            <img src="{{ image_2 }}" class="d-block w-100 rounded" alt="Example 2">
+                            <div class="carousel-caption d-none d-md-block">
+                                <h5>Ex images correctes</h5>
+                            </div>
+                        </div>
+                        <div class="carousel-item">
+                            <img src="{{ image_3 }}" class="d-block w-100 rounded" alt="Example 3">
+                            <div class="carousel-caption d-none d-md-block">
+                                <h5>Ex images correctes</h5>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#carouselLeft" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#carouselLeft" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Section Test YOLOv5s réduite -->
+            <div class="col-md-5 my-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h3 class="card-title text-center">Connexion ou inscription nécéssaire avant d'importer votre image</h3>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Carrousel de droite -->
+            <div class="col-md-3 mt-5 d-flex flex-column align-items-center">
+                <div id="carouselRight" class="carousel slide rounded mb-3 mx-2" data-bs-ride="carousel">
+                    <div class="carousel-inner">
+                        <div class="carousel-item active">
+                            <img src="{{ image_3 }}" class="d-block w-100 rounded" alt="Example 4">
+                            <div class="carousel-caption d-none d-md-block">
+                                <h5>Dernière image importée</h5>
+                            </div>
+                        </div>
+                        <div class="carousel-item">
+                            <img src="{{ image_2 }}" class="d-block w-100 rounded" alt="Example 5">
+                            <div class="carousel-caption d-none d-md-block">
+                                <h5>Dernière image importée</h5>
+                            </div>
+                        </div>
+                        <div class="carousel-item">
+                            <img src="{{ image_1 }}" class="d-block w-100 rounded" alt="Example 6">
+                            <div class="carousel-caption d-none d-md-block">
+                                <h5>Dernière image importée</h5>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#carouselRight" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#carouselRight" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Script pour l'effet de parallaxe -->
+<script>
+    document.addEventListener('scroll', function() {
+        const parallax = document.querySelector('.parallax');
+        let scrollPosition = window.pageYOffset;
+        parallax.style.backgroundPositionY = (60 - scrollPosition * 0.1) + '%';
+    });
+</script>
+
+{% endblock %}

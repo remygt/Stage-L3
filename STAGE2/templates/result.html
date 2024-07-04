@@ -1,0 +1,136 @@
+{% extends "nav.html" %}
+
+{% block content %}
+<div class="window">
+    <div class="container bg-light rounded mt-3 text-dark p-4 shadow-lg" id="zones">
+        <div class="row mb-4">
+            <div class="col">
+                <h1 class="display-4 text-center">Résultat de la détection d'objets</h1>
+                <p class="lead text-center">Résultats de la détection d'objets effectuée sur l'image importée.</p>
+            </div>
+        </div>
+
+        {% if detections %}
+        <div class="row justify-content-center mt-5">
+            <div class="col-md-8">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <div style="position: relative; display: inline-block; width: 100%; max-width: 800px;">
+                            <img id="detection-image" src="data:image/jpeg;base64,{{ image }}" class="img-fluid mb-2" alt="Image avec détections" style="width: 100%; height: auto; max-width: 800px; max-height: 600px; display: block;">
+                            {% for detection in detections %}
+                            <div class="detection-box"
+                                 data-xmin="{{ detection.x1 }}"
+                                 data-ymin="{{ detection.y1 }}"
+                                 data-xmax="{{ detection.x2 }}"
+                                 data-ymax="{{ detection.y2 }}"
+                                 style="position: absolute;
+                                        border: 2px solid #FF5733;
+                                        background-color: rgba(255, 87, 51, 0.3);
+                                        font-size: 14px;
+                                        color: #FF5733;
+                                        pointer-events: none;">
+                                <div style="background-color: #FF5733; color: white; padding: 2px 5px; font-weight: bold;">
+                                    {{ detection.cls }} - Confiance: {{ detection.conf }}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card shadow-sm">
+                    <div class="card-body overflow-auto" style="max-height: 550px;">
+                        <h2 class="card-title">Objets détectés :</h2>
+                        <ul class="list-group">
+                            {% for detection in detections %}
+                            <li class="list-group-item">
+                                <strong>{{ detection.cls }}</strong> - Confiance: {{ detection.conf }}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Espace commentaire conditionnel en dessous des objets détectés -->
+        <div class="row justify-content-center mt-4">
+            <div class="col-md-8">
+                {% if session['username'] %}
+                <div class="card shadow-sm my-2">
+                    <div class="card-body">
+                        <h3 class="card-title">Commentaires</h3>
+                        <!-- Formulaire de commentaire ici -->
+                        <form action="{{ url_for('bd_activ') }}" method="POST">
+                            <textarea class="form-control" name="comment" rows="3" placeholder="Ajouter un commentaire"></textarea>
+                            <input type="hidden" name="image_data" value="{{ img_url }}">
+                            <button type="submit" class="btn btn-primary mt-2">Ajouter</button>
+                        </form>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% else %}
+        <div class="alert alert-warning mt-4" role="alert">
+            Aucune détection d'objet n'a été effectuée.
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    /* Style pour les boîtes de détection */
+    .detection-box {
+        display: inline-block;
+    }
+    .detection-box > div {
+        position: absolute;
+        top: -20px;
+        left: 0;
+        white-space: nowrap;
+    }
+</style>
+
+<!-- Script pour ajuster les positions des boîtes de détection -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const image = document.getElementById('detection-image');
+        const boxes = document.querySelectorAll('.detection-box');
+
+        function adjustBoxes() {
+            const imgWidth = image.naturalWidth;
+            const imgHeight = image.naturalHeight;
+            const displayedWidth = image.clientWidth;
+            const displayedHeight = image.clientHeight;
+            const widthRatio = displayedWidth / imgWidth;
+            const heightRatio = displayedHeight / imgHeight;
+
+            boxes.forEach(box => {
+                const xmin = parseFloat(box.getAttribute('data-xmin'));
+                const ymin = parseFloat(box.getAttribute('data-ymin'));
+                const xmax = parseFloat(box.getAttribute('data-xmax'));
+                const ymax = parseFloat(box.getAttribute('data-ymax'));
+
+                const boxWidth = (xmax - xmin) * widthRatio;
+                const boxHeight = (ymax - ymin) * heightRatio;
+                const boxLeft = xmin * widthRatio;
+                const boxTop = ymin * heightRatio;
+
+                box.style.width = `${boxWidth}px`;
+                box.style.height = `${boxHeight}px`;
+                box.style.left = `${boxLeft}px`;
+                box.style.top = `${boxTop}px`;
+            });
+        }
+
+        // Adjust boxes on image load and window resize
+        image.addEventListener('load', adjustBoxes);
+        window.addEventListener('resize', adjustBoxes);
+        adjustBoxes();
+    });
+</script>
+
+{% endblock %}

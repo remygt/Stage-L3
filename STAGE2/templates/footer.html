@@ -1,0 +1,75 @@
+<style>
+    .footer-logo {
+        max-width: 80px; /* Ajustez la taille des logos si nécessaire */
+        margin: 0 10px; /* Ajoutez un espace entre les logos */
+    }
+    
+    .footer-logo-main {
+        max-width: 150px; /* Taille plus grande pour le logo principal */
+    }
+    
+    .social-icon {
+        width: 24px;
+        height: 24px;
+        margin: 0 10px;
+    }
+    
+    .footer {
+        background-color: #343a40;
+        color: #ffffff;
+    }
+    
+    .footer a {
+        color: #ffc107;
+        text-decoration: none;
+    }
+    
+    .footer a:hover {
+        color: #ffffff;
+    }
+    
+    .footer h5 {
+        margin-bottom: 1rem;
+    }
+    
+    .footer ul {
+        padding-left: 0;
+        list-style: none;
+    }
+    
+    .footer ul li {
+        margin-bottom: 0.5rem;
+    }
+    
+    .footer .social-icons {
+        margin-top: 10px;
+    }
+    </style>
+    
+    <footer class="footer py-4 mt-5 rounded">
+        <div class="container">
+            <div class="row text-center text-md-left align-items-center">
+                <div class="col-md-4 mb-3 mb-md-0 text-md-left text-center">
+                    <a href="https://www.cefe.cnrs.fr/fr/"><img src="{{ url_for('static', filename='img/logo1.jpg') }}" alt="Logo 1" class="footer-logo-main img-fluid"></a>
+                </div>
+                <div class="col-md-4 mb-3 mb-md-0 text-center">
+                    <h5>Navigation</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="{{ url_for('hello') }}">Accueil</a></li>
+                        <li><a href="#">À propos</a></li>
+                        <li><a href="#">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4 text-md-right text-center">
+                    <a href="https://www.insb.cnrs.fr/fr"><img src="{{ url_for('static', filename='img/logo2.png') }}" alt="Logo 2" class="footer-logo img-fluid d-inline-block"></a>
+                    <a href="https://www.univ-montp3.fr/"><img src="{{ url_for('static', filename='img/logo3.png') }}" alt="Logo 3" class="footer-logo img-fluid d-inline-block"></a>
+                    <div class="social-icons">
+                        <a href="#"><img src="{{ url_for('static', filename='img/facebook.png') }}" alt="Facebook" class="social-icon"></a>
+                        <a href="#"><img src="{{ url_for('static', filename='img/twitter.png') }}" alt="Twitter" class="social-icon"></a>
+                        <a href="#"><img src="{{ url_for('static', filename='img/linkedin.png') }}" alt="LinkedIn" class="social-icon"></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+    

@@ -1,0 +1,339 @@
+{% extends "nav.html" %}
+
+{% block content %}
+<div class="window">
+    <div class="container bg-light rounded mt-3 text-dark p-2 shadow-lg">
+        <div class="row mb-1">
+            <div class="col">
+                <h1 class="display-4 text-center">Identification de Collemboles</h1>
+                <p class="lead text-center">Vous êtes expert ? Alors aidez-nous à améliorer notre modèle en annotant manuellement ces images.</p>
+            </div>
+        </div>
+        <div class="row">
+            <!-- Section pour la sélection des zones sur l'image -->
+            <div class="col-md-8 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h2 class="card-title text-center">Sélectionner des régions dans l'image</h2>
+                        <div class="d-flex justify-content-between mb-2">
+                            <button id="zoomInButton" class="btn btn-secondary btn-sm">Zoom In</button>
+                            <button id="zoomOutButton" class="btn btn-secondary btn-sm">Zoom Out</button>
+                            <button id="moveButton" class="btn btn-secondary btn-sm">Move Image</button>
+                            <button id="resetZoomButton" class="btn btn-secondary btn-sm">Reset Zoom</button>
+                            <div id="zoomIndicator" class="align-self-center">100%</div>
+                        </div>
+                        <canvas id="imageCanvas" class="border rounded" style="width: 100%; max-width: 800px; height: auto;"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section pour les informations de sélection -->
+            <div class="col-md-4 mb-4" id="selectionColumn" style="max-height: none; overflow-y: auto;">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h4 class="card-title">Informations sur les sélections</h4>
+                        <ul id="selectionList" class="list-group list-group-flush"></ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Bouton pour enregistrer les sélections -->
+        <div class="row">
+            <div class="col-md-8 offset-md-5">
+                <button id="saveZonesButton" class="btn btn-primary mt-1">Enregistrer les sélections</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/4.5.0/fabric.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const canvas = document.getElementById('imageCanvas');
+    const ctx = canvas.getContext('2d');
+    const image = new Image();
+    const selectionList = [];
+    const canvasWidth = 800; // Standard width for the canvas
+    const canvasHeight = 600; // Standard height for the canvas
+
+    let selection = {
+        x1: 0,
+        y1: 0,
+        x2: 0,
+        y2: 0,
+        active: false
+    };
+
+    let isMoving = false;
+    let isZooming = false;
+    let startX, startY;
+    let scale = 1;
+    let posX = 0;
+    let posY = 0;
+
+    // Load the image into the canvas
+    image.onload = function() {
+        const aspectRatio = image.width / image.height;
+        if (aspectRatio > 1) {
+            canvas.width = canvasWidth;
+            canvas.height = canvasWidth / aspectRatio;
+        } else {
+            canvas.width = canvasHeight * aspectRatio;
+            canvas.height = canvasHeight;
+        }
+        drawImage();
+        adjustSelectionColumnHeight(canvas.height);
+    };
+
+    image.src = '{{ image_url }}';
+
+    function adjustSelectionColumnHeight(height) {
+        const selectionColumn = document.getElementById('selectionColumn');
+        selectionColumn.style.maxHeight = `${height}px`;
+    }
+
+    function drawImage() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.save();
+        ctx.translate(posX, posY);
+        ctx.scale(scale, scale);
+        ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+        ctx.restore();
+        drawSelections();
+    }
+
+    function drawSelections() {
+        ctx.strokeStyle = 'red';
+        ctx.lineWidth = 2;
+        for (const selection of selectionList) {
+            ctx.strokeRect(
+                selection.x1 * scale + posX,
+                selection.y1 * scale + posY,
+                (selection.x2 - selection.x1) * scale,
+                (selection.y2 - selection.y1) * scale
+            );
+        }
+    }
+
+    // Add selection to list
+    function addSelectionToList(x1, y1, x2, y2) {
+        if (!isPreviousSectionCommented()) {
+            alert('Veuillez d\'abord commenter la section précédente ou la supprimer avant de créer de nouvelles sélections.');
+            return;
+        }
+
+        if (selectionList.length >= 10) {
+            alert('Vous avez atteint la limite de 10 sélections.');
+            return;
+        }
+
+        const selection = {
+            x1: (x1 - posX) / scale,
+            y1: (y1 - posY) / scale,
+            x2: (x2 - posX) / scale,
+            y2: (y2 - posY) / scale,
+            comment: '',
+            editing: true
+        };
+        selectionList.push(selection);
+        updateSelectionList();
+    }
+
+    // Check if the previous section is commented
+    function isPreviousSectionCommented() {
+        for (const selection of selectionList) {
+            if (selection.comment === '') {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // Update selection list display
+    function updateSelectionList() {
+        const selectionListContainer = document.getElementById('selectionList');
+        selectionListContainer.innerHTML = ''; // Clear existing list
+
+        selectionList.forEach((selection, index) => {
+            const listItem = document.createElement('li');
+            listItem.className = 'list-group-item';
+
+            if (selection.editing) {
+                listItem.innerHTML = `
+                    <strong>Selection ${index + 1}:</strong>
+                    (${Math.round(selection.x1)}, ${Math.round(selection.y1)}) à (${Math.round(selection.x2)}, ${Math.round(selection.y2)})
+                    <input type="text" class="form-control mt-2" id="comment-${index}" placeholder="Ajouter un commentaire" value="${selection.comment}">
+                    <button class="btn btn-success btn-sm mt-2" onclick="saveComment(${index})">Valider</button>
+                    <button class="btn btn-danger btn-sm mt-2" onclick="deleteSelection(${index})">Supprimer</button>
+                `;
+            } else {
+                listItem.innerHTML = `
+                    <strong>Selection ${index + 1}:</strong>
+                    (${Math.round(selection.x1)}, ${Math.round(selection.y1)}) à (${Math.round(selection.x2)}, ${Math.round(selection.y2)}) - ${selection.comment}
+                    <button class="btn btn-warning btn-sm mt-2" onclick="editSelection(${index})">Modifier</button>
+                    <button class="btn btn-danger btn-sm mt-2" onclick="deleteSelection(${index})">Supprimer</button>
+                `;
+            }
+
+            selectionListContainer.appendChild(listItem);
+        });
+    }
+
+    // Save comment for a selection
+    window.saveComment = function(index) {
+        const commentInput = document.getElementById(`comment-${index}`);
+        selectionList[index].comment = commentInput.value;
+        selectionList[index].editing = false;
+        updateSelectionList();
+    };
+
+    // Edit a selection
+    window.editSelection = function(index) {
+        selectionList[index].editing = true;
+        updateSelectionList();
+    };
+
+    // Delete a selection
+    window.deleteSelection = function(index) {
+        selectionList.splice(index, 1);
+        updateSelectionList();
+        drawImage();
+    };
+
+    // Handle mouse events for selection and moving
+    canvas.addEventListener('mousedown', function(e) {
+        if (isMoving) {
+            startX = e.offsetX - posX;
+            startY = e.offsetY - posY;
+            canvas.style.cursor = 'grabbing';
+        } else {
+            selection.active = true;
+            selection.x1 = e.offsetX;
+            selection.y1 = e.offsetY;
+        }
+    });
+
+    canvas.addEventListener('mousemove', function(e) {
+        if (isMoving) {
+            if (startX !== undefined && startY !== undefined) {
+                posX = e.offsetX - startX;
+                posY = e.offsetY - startY;
+                drawImage();
+            }
+        } else if (selection.active) {
+            selection.x2 = e.offsetX;
+            selection.y2 = e.offsetY;
+            drawImage();
+            ctx.strokeRect(selection.x1, selection.y1, selection.x2 - selection.x1, selection.y2 - selection.y1);
+        }
+    });
+
+    canvas.addEventListener('mouseup', function(e) {
+        if (isMoving) {
+            startX = undefined;
+            startY = undefined;
+            canvas.style.cursor = 'default';
+        } else if (selection.active) {
+            selection.active = false;
+            addSelectionToList(selection.x1, selection.y1, selection.x2, selection.y2);
+        }
+    });
+
+    // Zoom in and out
+    document.getElementById('zoomInButton').addEventListener('click', function() {
+        scale *= 1.2;
+        updateZoomIndicator();
+        drawImage();
+    });
+
+    document.getElementById('zoomOutButton').addEventListener('click', function() {
+        scale /= 1.2;
+        updateZoomIndicator();
+        drawImage();
+    });
+
+    // Toggle move mode
+    document.getElementById('moveButton').addEventListener('click', function() {
+        isMoving = !isMoving;
+        this.classList.toggle('btn-primary');
+        this.classList.toggle('btn-secondary');
+    });
+
+    // Reset zoom and position
+    document.getElementById('resetZoomButton').addEventListener('click', function() {
+        scale = 1;
+        posX = 0;
+        posY = 0;
+        drawImage();
+        updateZoomIndicator();
+    });
+
+    function saveZones() {
+        fetch('/save_zones', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(selectionList.map(selection => ({
+                x: selection.x1,
+                y: selection.y1,
+                width: Math.abs(selection.x2 - selection.x1),
+                height: Math.abs(selection.y2 - selection.y1),
+                label: selection.comment,
+                id: '{{ image_id }}'
+            })))
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log(data.message); // Display success or error message
+            window.location.reload(); // Reload the page after saving zones
+        })
+        .catch(error => {
+            console.error('Erreur lors de l\'enregistrement des zones:', error);
+        });
+    }
+
+    // Bind saveZones function to the button click event
+    const saveZonesButton = document.getElementById('saveZonesButton');
+    saveZonesButton.addEventListener('click', saveZones);
+
+    // Indicator for zoom level
+    const zoomIndicator = document.getElementById('zoomIndicator');
+    const zoomLevels = ['100%', '120%', '140%', '160%', '180%', '200%'];
+    let zoomIndex = 2; // Default zoom level
+    updateZoomIndicator();
+
+    // Update zoom indicator
+    function updateZoomIndicator() {
+        zoomIndicator.textContent = Math.round(scale * 100) + '%';
+    }
+
+    // Zoom with scroll
+    canvas.addEventListener('wheel', function(e) {
+        e.preventDefault();
+        const zoomFactor = e.deltaY < 0 ? 1.2 : 0.8; // Determine zoom in or out
+        if (!(scale <= 1 && zoomFactor < 1)) { // Prevent zooming out below 100%
+            const mousePos = getMousePos(canvas, e); // Get mouse position relative to canvas
+            const oldScale = scale;
+            scale *= zoomFactor;
+            posX = mousePos.x - (mousePos.x - posX) * (scale / oldScale); // Adjust position for zoom
+            posY = mousePos.y - (mousePos.y - posY) * (scale / oldScale); // Adjust position for zoom
+            drawImage();
+            updateZoomIndicator();
+        }
+    });
+
+    // Function to get mouse position relative to canvas
+    function getMousePos(canvas, e) {
+        const rect = canvas.getBoundingClientRect();
+        return {
+            x: e.clientX - rect.left,
+            y: e.clientY - rect.top
+        };
+    }
+});
+</script>
+
+{% endblock %}
