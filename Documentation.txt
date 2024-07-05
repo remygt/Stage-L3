@@ -1,0 +1,21 @@
+Le projet étant fait grâce à Flask on retrouve plusieurs parties : 
+
+Static contient toute les photo et donné utiles au chargement de la page web 
+
+Template contient chaque page HTML 
+
+Le fichier python “index “ contient et gère l’application web. Il est assisté dans cette tâche avec BD.py qui crée la connexion avec la BD, ajouter.py qui gère la création de compte, connecter.py qui gère la connexion au profil, img_bd.py qui gère les images en bd (ajout/suppression/ récupération), Yolo BD qui gère l’annotation des images en BD et classe les image annoter en vue du fine tuning. 
+
+On trouve aussi Yolov5_1 qui est le modèle utiliser depuis le début, il contient load_model.py qui charge le modèle à utiliser dans la détection. Yolov5 est le modèle Yolo que vous m’avait envoyé. Im_sum est l'Active Learning qui vous m’avait fourni et im_sum2 celui que j’ai modifier. 
+
+Pour la partie BD elle comporte actuellement 3 tables : 
+
+- “client” qui contient les compte client. 
+
+- “images” qui contient les meta donné saisie par les utilisateurs dans l’espace commentaire. 
+
+- “img”  qui contient les images sélectionner par l’Active Learning et les annotations faite par les experts.  
+
+Dans l'état actuel du projet le modèle est implémenté mais la redimension d'images n'est pas optimal aussi un premier essai pour associer chaque classe a détection à un nom est mis en place ( import_lab qui est une fonction de index) 
+
+ 

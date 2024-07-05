@@ -5,6 +5,7 @@ import mysql.connector
 from PIL import Image
 import shutil
 import random
+
 def save_annotations_to_file(annotations, img_name, image_width, image_height):
     def convert_to_yolo_format(x, y, width, height, img_width, img_height):
         x_center = (x + width / 2) / img_width
